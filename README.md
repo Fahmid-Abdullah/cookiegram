@@ -11,9 +11,12 @@ This is a food-focused social media platform built with Next.js. It allows users
 * **Profile Management:** Securely sign up, sign in, and manage your profile with Clerk.
 * **Interactive UI:** Enjoy a responsive design powered by Tailwind CSS, featuring modals, hover effects, and smooth navigation.
 
-![Landing Page](https://github.com/Fahmid-Abdullah/cookiegram/blob/43d1fcfeb445cc0d30f60a47928ac8059a194999/demo%20gifs/Landing%20Page.gif)
-![Home Page](https://github.com/Fahmid-Abdullah/cookiegram/blob/43d1fcfeb445cc0d30f60a47928ac8059a194999/demo%20gifs/Home%20Page.gif)
-![New Post](https://github.com/Fahmid-Abdullah/cookiegram/blob/43d1fcfeb445cc0d30f60a47928ac8059a194999/demo%20gifs/New%20Post.gif)
+<p>
+  <img src="https://github.com/Fahmid-Abdullah/cookiegram/blob/43d1fcfeb445cc0d30f60a47928ac8059a194999/demo%20gifs/Landing%20Page.gif" alt="Landing Page" width="300" style="display: inline-block; margin-right: 10px;">
+  <img src="https://github.com/Fahmid-Abdullah/cookiegram/blob/43d1fcfeb445cc0d30f60a47928ac8059a194999/demo%20gifs/Home%20Page.gif" alt="Home Page" width="300" style="display: inline-block; margin-right: 10px;">
+  <img src="https://github.com/Fahmid-Abdullah/cookiegram/blob/43d1fcfeb445cc0d30f60a47928ac8059a194999/demo%20gifs/New%20Post.gif" alt="New Post" width="300" style="display: inline-block;">
+</p>
+
 
 ## Tech Stack
 * **Frontend:** Next.js, React, Tailwind CSS, Axios
