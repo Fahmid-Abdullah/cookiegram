@@ -1,113 +1,125 @@
+"use client";
 import Image from "next/image";
+import React from "react";
+import { Button } from "@nextui-org/react";
+import { useRouter } from "next/navigation";
 
-export default function Home() {
+export default function LandingPage() {
+  const router = useRouter();
+
+  const handlePress = () => {
+    router.push('/sign-up');
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <div>
+      <div className="relative w-full flex justify-center items-center">
+        <div className="relative w-full h-[700px] md:h-[500px] lg:h-[700px]">
+          <Image
+            src="/landingBg.jpg"
+            fill
+            style={{ objectFit: 'cover' }}
+            alt="Background image"
+          />
+          <div className="absolute inset-0 flex flex-col xl:p-10 xl:mt-3 md: mt-5 p-5 md:text-left md:items-start text-center items-center md:justify-start justify-center text-white">
+            <h1 className="text-4xl xl:text-8xl md:text-6xl font-bold mt-20 md:rotate-2">
+              C🍪🍪kieGram
+            </h1>
+            <p className="xl:text-xl xl:max-w-2xl max-w-md text-sm xl:mt-16 md:mt-10 px-4 md:text-left text-center">
+              Welcome to a food lover's paradise, where passion and creativity come together to craft dishes from around the world. 
+              Connect with like-minded foodies and join us in bringing the joy of cooking into kitchens everywhere!
+            </p>
+            <div className="mt-20 lg:ml-16 md:ml-10">
+              <Button
+                color="primary"
+                size="lg"
+                radius="full"
+                variant="shadow"
+                onPress={handlePress}
+                className="w-full max-w-xs xl:w-80 xl:h-20 xl:p-8 text-lg xl:text-2xl font-semibold tracking-widest"
+              >
+                Get Started 🢂
+              </Button>
+            </div>
+            <p className="mt-3 xl:text-lg text-sm lg:ml-16 md:ml-10">
+              Already have an account? <a href="/sign-in" className="text-blue-500"><u>Login here</u></a>
+            </p>
+          </div>
         </div>
       </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
+      <div className="p-4 lg:p-8 text-black">
+        <h1 className="text-4xl lg:text-4xl font-bold text-center mt-10">
+          Welcome to Our CookieGram
+        </h1>
+        <p className="mt-4 text-lg text-center font-semibold mx-4 lg:mx-40">
+          Cookiegram is a social media platform for foodies to come together and
+          share their favorite foods, recipes, and culinary adventures. Whether
+          you're a seasoned chef or a passionate home cook, Cookiegram provides
+          a space to connect with fellow food enthusiasts, discover new flavors,
+          and exchange cooking hacks.
+        </p>
+        <div className="flex flex-col lg:flex-row text-center mt-10">
+          <div className="flex-auto w-full lg:w-1/3 mt-10 lg:mt-0 px-4">
+            <h2 className="text-2xl font-semibold">Capture</h2>
+            <p className="mt-5 leading-7">
+            Discover a world of delicious recipes, handy tips, and kitchen tricks 
+            from chefs around the globe. Whether you're just starting out or already a 
+            pro, you'll find everything you need to cook up mouthwatering meals that
+            everyone will love.
+            </p>
+            <div className="flex justify-center mt-5">
+            <Image
+              src="/cap1.png"
+              width={340}
+              height={240}
+              className="rounded-2xl object-scale-down"
+              alt="capture image"
+            />
+            </div>
+          </div>
+          <div className="flex-auto w-full lg:w-1/3 mt-10 lg:mt-0 px-4 ">
+            <h2 className="text-2xl font-semibold">Cook</h2>
+            <p className="mt-5 leading-7">
+              Join a lively and welcoming community of food enthusiasts, chefs, and home 
+              cooks from all corners of the world. Connect with others who share your passion 
+              for cooking, exchange delicious recipes, and learn new techniques.
+            </p>
+            <div className="flex justify-center mt-5">
+              <Image
+                src="/food.png"
+                width={350}
+                height={240}
+                className="rounded-2xl object-cover"
+                alt="cook image"
+              />
+            </div>
+          </div>
+          <div className="flex-auto w-full lg:w-1/3 mt-10 lg:mt-0 px-4">
+            <h2 className="text-2xl font-semibold">Connect</h2>
+            <p className="mt-5 leading-7">
+              Share your cooking journeys through captivating visuals and inspire others with
+               your delicious creations. Let your food come to life with every snapshot, sparking
+                the imagination of fellow food lovers and encouraging them to explore new recipes
+                 and techniques.
+            </p>
+            <div className="flex justify-center mt-5">
+              <Image
+                src="/social1.jpg"
+                width={350}
+                height={240}
+                className="rounded-2xl object-cover"
+                alt="connect image"
+              />
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+      <footer className="bg-gray-200 p-4 text-left mt-20">
+        <p className="text-gray-600">
+          © {new Date().getFullYear()} Fahmid Abdullah. All Rights Reserved.
+        </p>
+        <div className="mt-2 text-sm"></div>
+      </footer>
+    </div>
   );
 }

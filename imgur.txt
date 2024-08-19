@@ -1,0 +1,27 @@
+Token Details
+Token Name: Imgur
+Access Token: c72cfdce7ff6f5115350ef0f444443805de9e753
+Token Type: bearer
+expires_in: 315360000
+scope: 
+refresh_token: 83707680689bae3a9a17b28ed3c859981b8ca994
+account_id: 182534133
+account_username: FahmidAbdullah
+access_token_url: https://api.imgur.com/oauth2/token
+client_id: 14ab8d8f23df9ca
+client_secret: b4e200d1484aa06b65c0e1201a2ea6576a23f211
+grant_type: authorization_code
+password:
+username:
+client_authentication: header
+timestamp: 1719160275925
+
+{
+    "access_token": "9bb1ad5809d12e0bf15ea08f50fd5e7a7fe1d43d",
+    "expires_in": 315360000,
+    "token_type": "bearer",
+    "scope": null,
+    "refresh_token": "3c1e9fd2fa0fe588f898d7793a7aeef4e778715b",
+    "account_id": 182534133,
+    "account_username": "FahmidAbdullah"
+}

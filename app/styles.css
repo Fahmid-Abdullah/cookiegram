@@ -1,0 +1,17 @@
+/* styles.css */
+.custom-scrollbar::-webkit-scrollbar {
+    @apply w-2; /* Set the scrollbar width */
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-rose-500 rounded-full; /* Set the scrollbar thumb color and round the corners */
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent; /* Set the track background to transparent */
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-button {
+    display: none; /* Remove the scrollbar arrows */
+  }
+  
