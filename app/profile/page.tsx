@@ -373,7 +373,6 @@ const Page: React.FC = () => {
         <PostDetails minimalPost={selectedPost} user={currentUser} clerkUserId={currentClerkUserId} onClose={() => setIsPostDetailsVisible(false)} />
       )}
 
-    // Followers Box
     {followersVisible && (
       <div
         ref={followersRef}
@@ -421,7 +420,6 @@ const Page: React.FC = () => {
       </div>
     )}
 
-    // Followings Box
     {followingsVisible && (
       <div
         ref={followingsRef}
