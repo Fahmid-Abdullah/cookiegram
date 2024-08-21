@@ -355,10 +355,12 @@ const Page: React.FC = () => {
           src={imageSrc}
           alt="User profile"
         />
+        {user?.updatedUserData._id === currentUser?._id && (
           <div className="absolute inset-0 bg-gray-700 opacity-0 group-hover:opacity-75 flex items-center justify-center transition-opacity duration-300 rounded-full"
           onClick={triggerFileInput}>
             <span className="text-white text-4xl font-semibold"><i className="fa-solid fa-file-pen"></i></span>
           </div>
+        )}
       <input
         type="file"
         ref={fileInputRef}
