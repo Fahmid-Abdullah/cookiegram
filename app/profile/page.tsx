@@ -332,7 +332,7 @@ const Page: React.FC = () => {
             <div className='text-left mt-4 w-full text-sm'>
               {isEditing ? (
                 <div className='flex flex-col'>
-                  <div className='w-full max-w-2xl'>
+                  <div className='w-screen max-w-xl'>
                     <Textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
