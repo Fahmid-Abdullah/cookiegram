@@ -48,6 +48,11 @@ interface minimalPost {
   created_at: string;
 }
 
+interface OtherProfile {
+  clerkUserId: string;
+  isFollowed: boolean
+}
+
 const Page: React.FC = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [currentClerkUserId, setCurrentClerkUserId] = useState<string>("");
@@ -58,6 +63,8 @@ const Page: React.FC = () => {
   const [followersVisible, setFollowersVisible] = useState(false);
   const [followers, setFollowers] = useState<{ creator: string; clerkId: string; image: string; userId: string; isFollowed?: boolean }[]>([]);
   const [followings, setFollowings] = useState<{ creator: string; clerkId: string; image: string; userId: string; isFollowed?: boolean }[]>([]);
+  const [profileClerkId, setProfileClerkId] = useState<string>("");
+  const [profileIsFollowed, setProfileIsFollowed] = useState<boolean>(false);
   const [posts, setPosts] = useState<minimalPost[]>([]);
   const [likedPosts, setLikedPosts] = useState<minimalPost[]>([]);
   const [selectedPost, setSelectedPost] = useState<minimalPost | null>(null);
@@ -147,6 +154,7 @@ const Page: React.FC = () => {
   
         const userResponse = await axios.get<User>('/api/getUser');
         setCurrentUser(userResponse.data);
+
       } else {
         router.push('/')
         throw new Error('User not authenticated');
@@ -160,7 +168,13 @@ const Page: React.FC = () => {
 
   useEffect(() => {
     fetchUser();
-  }, [urlParams, isPostDetailsVisible]);    
+  }, [urlParams, isPostDetailsVisible]);  
+  
+  useEffect(() => {
+    if (user?.updatedUserData._id !== currentUser?._id) {
+      handleOtherProfile()
+    }
+  }, [user, currentUser])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -207,7 +221,8 @@ const Page: React.FC = () => {
     try {
       setLoading(true); // Start loading
       if (user?.clerkData.userId) {
-        await followUser(user.clerkData.userId, followUserId, !isFollowed);
+        await followUser(currentClerkUserId, followUserId, !isFollowed);
+        setProfileIsFollowed(!isFollowed);
         setFollowers(prevFollowers =>
           prevFollowers.map(follower =>
             follower.clerkId === followUserId
@@ -215,7 +230,6 @@ const Page: React.FC = () => {
               : follower
           )
         );
-  
         setFollowings(prevFollowings =>
           prevFollowings.map(following =>
             following.clerkId === followUserId
@@ -262,8 +276,19 @@ const Page: React.FC = () => {
       await fetchUser()
     }
   };
-  
 
+  const handleOtherProfile = async () => {
+    if (user && currentUser) {
+      setProfileClerkId(user.updatedUserData._id)
+
+      const isFollowing = user.updatedUserData.followers.some(follower => follower.userId === currentUser._id);
+
+      if (isFollowing) {
+        setProfileIsFollowed(true)
+      }
+    }
+  }
+  
   const toggleFollowings = () => {
     setFollowingsVisible(!followingsVisible);
   }
@@ -347,16 +372,37 @@ const Page: React.FC = () => {
               <div className='font-bold text-xl'>
                 {user.clerkData.firstName} {user.clerkData.lastName}
               </div>
-                {isEditing ? (
-                  <button className='ml-3 py-1 px-2 text-sm bg-blue-500 hover:bg-blue-700 text-white rounded' onClick={handleSaveClick}>Save</button>
+              {user?.updatedUserData._id === currentUser?._id ? (
+                isEditing ? (
+                  <button
+                    className='ml-3 py-1 px-2 text-sm bg-blue-500 hover:bg-blue-700 text-white rounded'
+                    onClick={handleSaveClick}
+                  >
+                    Save
+                  </button>
                 ) : (
                   <div className="relative group">
-                    <i className="fa-solid fa-pen-to-square ml-3 text-xl hover:text-blue-500 transition-transform duration-300 hover:scale-110" onClick={handleEditClick}></i>
-                  <div className="absolute left-5 transform hidden z-50 group-hover:block bg-rose-400 text-white text-xs rounded py-1 px-2 text-center" style={{ width: '110px' }}>
-                    Edit Description
-                  </div>
-                </div>        
-                )}
+                    <i
+                      className="fa-solid fa-pen-to-square ml-3 text-xl hover:text-blue-500 transition-transform duration-300 hover:scale-110"
+                      onClick={handleEditClick}
+                    ></i>
+                    <div
+                      className="absolute left-5 transform hidden z-50 group-hover:block bg-rose-400 text-white text-xs rounded py-1 px-2 text-center"
+                      style={{ width: '110px' }}
+                    >
+                      Edit Description
+                    </div>
+                  </div>        
+                )
+              ) : (
+                <button
+                  className={`ml-2 transition transform hover:scale-110 px-2 p-1 rounded ${profileIsFollowed ? 'bg-red-600' : 'bg-red-400'}`}
+                  onClick={() => handleFollowClick(profileClerkId, profileIsFollowed || false)}
+                >
+                  {profileIsFollowed ? '✓ Followed' : 'Follow'}
+                </button>
+              )}
+
               </div>
               <SignOutButton>
                 <button className='ml-3 flex items-center transition-transform duration-300 hover:scale-110'>
@@ -451,7 +497,7 @@ const Page: React.FC = () => {
         ref={followersRef}
         className="absolute top-16 left-1/2 transform bg-white z-30 rounded-xl flex flex-col shadow-xl overflow-y-auto custom-scrollbar"
         style={{
-          width: '400px',
+          width: '500px',
           height: '600px',  // Fixed height for the box
           margin: '0',
           transform: 'translate(-50%, 10%)',
@@ -467,7 +513,7 @@ const Page: React.FC = () => {
               followers.map(follower => (
                 <li key={follower.clerkId} className="py-2 px-4 border-b flex items-center">
                   <img 
-                    className='rounded-full mr-3' 
+                    className='rounded-full mr-3 w-8 h-8' 
                     src={`${follower.image}?${new URLSearchParams({ height: "32", width: "32", quality: "100", fit: "crop" })}`} 
                     alt={`${follower.creator}'s profile`}
                   />
@@ -477,12 +523,14 @@ const Page: React.FC = () => {
                       View Profile
                     </div>
                   </div>
-                  <button
+                  {follower.clerkId !== currentClerkUserId && (
+                    <button
                     className={`ml-auto transition transform hover:scale-110 px-2 p-1 rounded ${follower.isFollowed ? 'bg-red-600' : 'bg-red-400'}`}
-                    onClick={() => handleFollowClick(follower.userId, follower.isFollowed || false)}
-                  >
-                    {follower.isFollowed ? '✓ Followed' : 'Follow'}
-                  </button>
+                      onClick={() => handleFollowClick(follower.userId, follower.isFollowed || false)}
+                    >
+                      {follower.isFollowed ? '✓ Followed' : 'Follow'}
+                    </button>
+                  )}
                 </li>
               ))
             ) : (
@@ -498,7 +546,7 @@ const Page: React.FC = () => {
         ref={followingsRef}
         className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-white z-30 rounded-xl flex flex-col shadow-xl overflow-y-auto custom-scrollbar"
         style={{
-          width: '400px',
+          width: '500px',
           height: '600px',  // Fixed height for the box
           margin: '0',
           transform: 'translate(-50%, 10%)',
@@ -514,7 +562,7 @@ const Page: React.FC = () => {
               followings.map(following => (
                 <li key={following.clerkId} className="py-2 px-4 border-b flex items-center">
                   <img 
-                    className='rounded-full mr-3' 
+                    className='rounded-full mr-3 w-8 h-8' 
                     src={`${following.image}?${new URLSearchParams({ height: "32", width: "32", quality: "100", fit: "crop" })}`} 
                     alt={`${following.creator}'s profile`}
                   />
@@ -524,12 +572,15 @@ const Page: React.FC = () => {
                       View Profile
                     </div>
                   </div>
+                  {following.clerkId !== currentClerkUserId && (
                   <button
                     className={`ml-auto transition transform hover:scale-110 px-2 p-1 rounded ${following.isFollowed ? 'bg-red-600' : 'bg-red-400'}`}
                     onClick={() => handleFollowClick(following.userId, following.isFollowed || false)}
                   >
                     {following.isFollowed ? '✓ Followed' : 'Follow'}
+                    
                   </button>
+                  )}
                 </li>
               ))
             ) : (
