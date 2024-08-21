@@ -4,7 +4,7 @@ import NavBar from "../components/navbar";
 import { SignOutButton } from '@clerk/nextjs';
 import axios from 'axios';
 import { Textarea } from '@nextui-org/react';
-import { followUser, getLikedPosts, updateDescription } from '../lib/actions/user.actions';
+import { followUser, getLikedPosts, setName, updateDescription, updatePfp } from '../lib/actions/user.actions';
 import { useRouter, useSearchParams } from 'next/navigation';
 import PostDetails from '../components/postdetails';
 import '../styles.css';
@@ -63,6 +63,9 @@ const Page: React.FC = () => {
   const [selectedPost, setSelectedPost] = useState<minimalPost | null>(null);
   const [isPostDetailsVisible, setIsPostDetailsVisible] = useState(true);
   const [selectedTab, setSelectedTab] = useState('own');
+  const [firstName, setFirstName] = useState(user?.clerkData.firstName || "");
+  const [lastName, setLastName] = useState(user?.clerkData.lastName || "");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   
@@ -131,8 +134,14 @@ const Page: React.FC = () => {
             setLikedPosts([]); // Set liked posts to an empty array if no liked posts are available
           }
         }
-  
-        setUser(response.data);
+
+        if (response.data) {
+          setUser(response.data);
+
+          setFirstName(response.data.clerkData.firstName)
+          setLastName(response.data.clerkData.lastName)
+        }
+
         const clerkResponse = await axios.get<ClerkUser>('/api/getUserId');
         setCurrentClerkUserId(clerkResponse.data.userId);
   
@@ -175,16 +184,25 @@ const Page: React.FC = () => {
       setIsEditing(false);
       try {
         setLoading(true); // Start loading
+  
+        // Update the description, name, and profile picture
         await updateDescription(user.clerkData.userId, description);
-        console.log("Description updated successfully");
+        await setName(user.clerkData.userId, firstName, lastName);
+  
+        setFirstName(user.clerkData.firstName);
+        setLastName(user.clerkData.lastName);
+  
+        console.log("Profile updated successfully");
+  
+        await fetchUser();
       } catch (error) {
-        console.error("Error updating description:", error);
+        console.error("Error updating profile:", error);
       } finally {
         setLoading(false); // End loading
       }
     }
   };
-
+  
   const handleFollowClick = async (followUserId: string, isFollowed: boolean) => {
     try {
       setLoading(true); // Start loading
@@ -231,6 +249,21 @@ const Page: React.FC = () => {
     setFollowingsVisible(false);
   }
 
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    
+    if (user && selectedFile) {
+      event.target.value = ''; // Clear the file input value
+  
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+  
+      await updatePfp(user.clerkData.userId, formData);
+      await fetchUser()
+    }
+  };
+  
+
   const toggleFollowings = () => {
     setFollowingsVisible(!followingsVisible);
   }
@@ -238,6 +271,10 @@ const Page: React.FC = () => {
   const toggleFollowers = () => {
     setFollowersVisible(!followersVisible);
   }
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+};
 
   const renderPosts = () => {
     const displayPosts = selectedTab === 'own' ? posts : likedPosts;
@@ -277,7 +314,7 @@ const Page: React.FC = () => {
     fit: "crop",
   });
 
-  const imageSrc = `${user.clerkData.image}?${params.toString()}`;
+  const imageSrc = `${user.clerkData.image}?${params.toString()}&t=${new Date().getTime()}`;
 
   return (
     <div className='bg-white z-1'>
@@ -287,11 +324,29 @@ const Page: React.FC = () => {
       {/* User Info Card */}
       <div className="w-full max-w-4xl h-auto bg-white shadow-lg rounded-lg relative">
         <div className='flex text-black p-5 mx-5 items-center'>
-          <img className='rounded-full w-[20vw] h-auto' src={imageSrc} alt="User profile"/>
+        <div className="relative group w-[20vw] h-auto min-w-[100px]">
+        <img
+          className="rounded-full w-[20vw] h-auto min-w-[100px]"
+          src={imageSrc}
+          alt="User profile"
+        />
+          <div className="absolute inset-0 bg-gray-700 opacity-0 group-hover:opacity-75 flex items-center justify-center transition-opacity duration-300 rounded-full"
+          onClick={triggerFileInput}>
+            <span className="text-white text-4xl font-semibold"><i className="fa-solid fa-file-pen"></i></span>
+          </div>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      </div>
           <div className='ml-8 flex-1'>
             <div className='flex items-center justify-normal md:justify-between'>
-              <div className='flex items-center'>
-                <div className='font-bold text-xl'>{user.clerkData.firstName} {user.clerkData.lastName}</div>
+              <div className='flex  items-center'>
+              <div className='font-bold text-xl'>
+                {user.clerkData.firstName} {user.clerkData.lastName}
+              </div>
                 {isEditing ? (
                   <button className='ml-3 py-1 px-2 text-sm bg-blue-500 hover:bg-blue-700 text-white rounded' onClick={handleSaveClick}>Save</button>
                 ) : (
@@ -314,6 +369,24 @@ const Page: React.FC = () => {
                 </button>
               </SignOutButton>
             </div>
+            {isEditing && (
+                    <>
+                      <input
+                        type="text"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="border rounded p-1 mr-2 mt-5"
+                        placeholder="First Name"
+                      />
+                      <input
+                        type="text"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className="border rounded p-1 mb-3"
+                        placeholder="Last Name"
+                      />
+                    </>
+                  ) }
             <div className='flex md:flex-row flex-col justify-start md:space-x-4 mt-2'>
               <div>{user.updatedUserData.posts.length} posts</div>
               <div className="relative group">
@@ -332,7 +405,7 @@ const Page: React.FC = () => {
             <div className='text-left mt-4 w-full text-sm'>
               {isEditing ? (
                 <div className='flex flex-col'>
-                  <div className='w-screen max-w-xl'>
+                  <div className='w-full md:w-screen max-w-xl'>
                     <Textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
@@ -341,7 +414,7 @@ const Page: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className='w-screen max-w-xl'>{description}</div>
+                <div className='w-full md:w-screen max-w-xl'>{description}</div>
               )}
             </div>
           </div>

@@ -144,7 +144,7 @@ export async function getAllUsers(): Promise<UserData[]> {
                 if (!clerkUser) {
                     throw new Error('Clerk user not found');
                 }
-
+                
                 return {
                     name: `${clerkUser.firstName} ${clerkUser.lastName}`,
                     userid: user._id.toString(), // Ensure consistency with UserData interface
@@ -163,5 +163,30 @@ export async function getAllUsers(): Promise<UserData[]> {
 
     } catch (error: any) {
         throw new Error(`Failed to get users: ${error.message}`);
+    }
+}
+
+export async function setName(clerkId: string, firstName: string, lastName: string): Promise<void> {
+    try {
+        const params = { firstName: firstName, lastName: lastName }
+        await clerkClient.users.updateUser(clerkId, params)
+    } catch (error: any) {
+        throw new Error(`Failed to get users: ${error.message}`);
+    }
+}
+
+export async function updatePfp(clerkId: string, formData: FormData): Promise<void> {
+    try {
+        const fileEntry = formData.get('file');
+
+        if (fileEntry && fileEntry instanceof File) {
+            const response = await clerkClient.users.updateUserProfileImage(clerkId, { file: fileEntry });
+            console.log(response);
+        } else {
+            throw new Error('Failed to get image or the image is not a valid file.');
+        }
+        
+    } catch (error: any) {
+        throw new Error(`Failed to update profile image: ${error.message}`);
     }
 }
