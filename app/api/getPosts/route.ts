@@ -1,12 +1,14 @@
+// Import necessary modules
 import { createUser } from '@/app/lib/actions/user.actions';
+import { validateToken } from '@/app/lib/middleware';
 import Post from '@/app/lib/models/post.model';
 import User from '@/app/lib/models/user.model';
 import { connectToDB } from '@/app/lib/mongoose';
 import { clerkClient, currentUser } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
-import { authenticate } from '../../middleware/authenticate';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: Request) {
+// Define the handler function for the GET request
+const handler = async (req: NextRequest): Promise<NextResponse> => {
     await connectToDB();
 
     try {
@@ -14,6 +16,7 @@ export async function GET(request: Request) {
         if (!user) {
             return NextResponse.json({ error: 'User not authenticated' }, { status: 401 });
         }
+        
         await createUser(user.id);
 
         // Find all posts
@@ -32,9 +35,9 @@ export async function GET(request: Request) {
             // Add creator name to the post object
             return {
                 ...post.toObject(),
-                clerkId: `${clerkUser.id}`,
+                clerkId: clerkUser.id,
                 creator: `${clerkUser.firstName} ${clerkUser.lastName}`,
-                image: `${clerkUser.imageUrl}`
+                image: clerkUser.imageUrl,
             };
         }));
 
@@ -43,4 +46,7 @@ export async function GET(request: Request) {
         console.error('Error fetching posts:', error);
         return NextResponse.json({ error: `Failed to fetch posts: ${error.message}` }, { status: 500 });
     }
-}
+};
+
+// Export the handler for the GET method
+export const GET = validateToken(handler);

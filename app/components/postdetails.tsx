@@ -73,7 +73,11 @@ const PostDetails: React.FC<PostDetailsProps> = ({ minimalPost, user, clerkUserI
     if (minimalPost) {
       try {
         setLoading(true); // Start loading
-        const response = await fetch(`/api/getPost?postId=${minimalPost._id}`);   
+        const response = await fetch(`/api/getPost?postId=${minimalPost._id}`, {
+          headers: {
+            'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN ?? '', // Fallback to empty string if undefined
+          },
+        });
         const data = await response.json();
         if (response.ok && data.post) {
           setPost(data.post);

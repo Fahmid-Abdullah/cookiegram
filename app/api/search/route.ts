@@ -1,10 +1,12 @@
-import { NextResponse } from 'next/server';
+// Import necessary modules
+import { NextRequest, NextResponse } from 'next/server';
 import Post from '@/app/lib/models/post.model';
 import { getAllUsers } from '@/app/lib/actions/user.actions';
-import { authenticate } from '../../middleware/authenticate';
+import { validateToken } from '@/app/lib/middleware';
 
-export async function GET(request: Request) {
-  const url = new URL(request.url);
+// Define the handler function for the GET request
+const handler = async (req: NextRequest): Promise<NextResponse> => {
+  const url = new URL(req.url);
   const query = url.searchParams.get('query');
   const type = url.searchParams.get('type');
 
@@ -36,4 +38,7 @@ export async function GET(request: Request) {
     console.error(`Search error: ${error.message}`);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
-}
+};
+
+// Export the handler for the GET method
+export const GET = validateToken(handler);

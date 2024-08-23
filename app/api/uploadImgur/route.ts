@@ -1,10 +1,12 @@
+// Import necessary modules
+import { validateToken } from '@/app/lib/middleware';
 import axios from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticate } from '../../middleware/authenticate';
 
 const clientId = process.env.NEXT_PUBLIC_IMGUR_CLIENT_ID;
 
-export async function POST(req: NextRequest) {
+// Define the handler function for the POST request
+const handler = async (req: NextRequest): Promise<NextResponse> => {
   try {
     const formData = await req.formData();
     const file = formData.get('file');
@@ -21,14 +23,17 @@ export async function POST(req: NextRequest) {
 
     const imgurResponse = await axios.post('https://api.imgur.com/3/image', imgurFormData, {
       headers: {
-        'Authorization': `Client-ID ${clientId}`,
+        Authorization: `Client-ID ${clientId}`,
         'Content-Type': 'multipart/form-data',
       },
     });
 
     return NextResponse.json(imgurResponse.data);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error uploading image to Imgur:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+};
+
+// Export the handler for the POST method
+export const POST = validateToken(handler);

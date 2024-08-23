@@ -67,7 +67,11 @@ export default function page() {
     const fetchUser = async () => {
         try {
             setLoading(true); // Start loading
-            const response = await axios.get<User>('/api/getUserId');
+            const response = await axios.get<User>('/api/getUserId', {
+                headers: {
+                  'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN, // Pass the token in the request headers
+                },
+              });
             if (response.data.userId) {
                 setClerkUserId(response.data.userId);
             } else {
@@ -90,6 +94,7 @@ export default function page() {
             setPostId(postId);
             const response = await axios.get('/api/getPost', {
                 params: { postId },
+                headers: { 'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN } // Pass the token in the request headers
             });
     
             if (response.status === 200 && response.data) {
@@ -129,11 +134,16 @@ export default function page() {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await axios.post<ImgurResponse>('/api/uploadImgur', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
+            const response = await axios.post<ImgurResponse>(
+                '/api/uploadImgur',
+                formData,
+                {
+                  headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN, // Pass the token in the request headers
+                  },
                 }
-            });
+              );
 
             if (response.status === 200) {
                 setImgurLink(response.data.data.link);

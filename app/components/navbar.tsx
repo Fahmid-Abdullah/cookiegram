@@ -21,7 +21,11 @@ export default function NavBar() {
     useEffect(() => {
         const fetchUserId = async () => {
           try {
-            const response = await axios.get<ClerkUser>('/api/getUserId');
+            const response = await axios.get<ClerkUser>('/api/getUserId', {
+                headers: {
+                  'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN, // Pass the token in the request headers
+                },
+              });
             if (response.data.userId) {
               setClerkUser(response.data);
             }

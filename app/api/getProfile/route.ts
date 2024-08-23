@@ -1,14 +1,16 @@
+// Import necessary modules
 import { getUser } from '@/app/lib/actions/user.actions';
+import { validateToken } from '@/app/lib/middleware';
 import User from '@/app/lib/models/user.model';
 import { connectToDB } from '@/app/lib/mongoose';
 import { clerkClient } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
-import { authenticate } from '../../middleware/authenticate';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: Request) {
+// Define the handler function for the GET request
+const handler = async (req: NextRequest): Promise<NextResponse> => {
     await connectToDB();
 
-    const url = new URL(request.url);
+    const url = new URL(req.url);
     const userId = url.searchParams.get('clerkId');
 
     try {
@@ -39,9 +41,9 @@ export async function GET(request: Request) {
                 // Return an object with the creator name and Clerk ID
                 return {
                     creator: `${clerkUser.firstName} ${clerkUser.lastName}`,
-                    image: `${clerkUser.imageUrl}`,
+                    image: clerkUser.imageUrl,
                     clerkId: clerkUser.id,
-                    userId: user._id
+                    userId: user._id,
                 };
             })
         );
@@ -49,7 +51,6 @@ export async function GET(request: Request) {
         const followersWithDetails = await Promise.all(
             userData.followers.map(async (followerId: string) => {
                 const user = await User.findById(followerId).exec();
-                
                 if (!user) {
                     throw new Error(`${followerId} not found`);
                 }
@@ -60,9 +61,9 @@ export async function GET(request: Request) {
                 // Return an object with the creator name and Clerk ID
                 return {
                     creator: `${clerkUser.firstName} ${clerkUser.lastName}`,
-                    image: `${clerkUser.imageUrl}`,
+                    image: clerkUser.imageUrl,
                     clerkId: clerkUser.id,
-                    userId: user._id
+                    userId: user._id,
                 };
             })
         );
@@ -78,21 +79,19 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
-        // Attach the modified followings array to the userData
-        const userDataWithFollowings = {
-            ...userData.toObject(),
-            followings: followingsWithDetails
-        };  
-        
-        // Attach the modified follwer array to the userData
+        // Attach the modified followings and followers arrays to the userData
         const updatedUserData = {
-            ...userDataWithFollowings,
-            followers: followersWithDetails
-        };  
+            ...userData.toObject(),
+            followings: followingsWithDetails,
+            followers: followersWithDetails,
+        };
 
         return NextResponse.json({ clerkData, updatedUserData }, { status: 200 });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching user data:', error);
-        return NextResponse.json({ error: `Failed to fetch user data: ${error}` }, { status: 500 });
+        return NextResponse.json({ error: `Failed to fetch user data: ${error.message}` }, { status: 500 });
     }
-}
+};
+
+// Export the handler for the GET method
+export const GET = validateToken(handler);

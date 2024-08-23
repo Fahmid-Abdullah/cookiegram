@@ -61,7 +61,11 @@ export default function Page() {
       if (sanitizedQuery.trim()) {
         try {
           setLoading(true); // Start loading
-          const response = await fetch(`/api/search?query=${encodeURIComponent(sanitizedQuery)}&type=${searchType}`);
+          const response = await fetch(`/api/search?query=${encodeURIComponent(sanitizedQuery)}&type=${searchType}`, {
+            headers: {
+              'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN || "", // Pass the token in the request headers
+            },
+          });
           if (!response.ok) {
             throw new Error('Network response was not ok');
           }
@@ -93,7 +97,11 @@ export default function Page() {
   const fetchUser = async () => {
     try {
         setLoading(true); // Start loading
-        const clerkResponse = await axios.get<ClerkUser>('/api/getUserId');
+        const clerkResponse = await axios.get<ClerkUser>('/api/getUserId', {
+          headers: {
+            'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN, // Pass the token in the request headers
+          },
+        });
         if (clerkResponse.data.userId) {
           setCurrentClerkUserId(clerkResponse.data.userId);
         } else {
@@ -102,7 +110,11 @@ export default function Page() {
         }
         
   
-        const userResponse = await axios.get<User>('/api/getUser');
+        const userResponse = await axios.get<User>('/api/getUser', {
+          headers: {
+            'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN, // Pass the token in the request headers
+          },
+        });
         setCurrentUser(userResponse.data);
 
     } catch (error) {

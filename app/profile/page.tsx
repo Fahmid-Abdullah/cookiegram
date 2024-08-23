@@ -97,10 +97,14 @@ const Page: React.FC = () => {
       }
   
       // Fetch current user
-      const userResponse = await axios.get<User>('/api/getUser');
+      const userResponse = await axios.get<User>('/api/getUser', {
+        headers: {
+          'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN, // Pass the token in the request headers
+        },
+      });
       setCurrentUser(userResponse.data);
   
-      const response = await axios.get<UserProfile>('/api/getProfile', { params: { clerkId: id } });
+      const response = await axios.get<UserProfile>('/api/getProfile', { params: { clerkId: id }, headers: { 'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN, } });
       const userData = response.data;
       if (!userData) {
         router.push('/');
@@ -127,7 +131,15 @@ const Page: React.FC = () => {
   
       // Fetch posts
       if (posts && posts.length > 0) {
-        const imagesResponse = await axios.post<{ postId: string, imageLink: string }[]>('/api/getImages', { postIds: posts });
+        const imagesResponse = await axios.post<{ postId: string, imageLink: string }[]>(
+          '/api/getImages',
+          { postIds: posts },
+          {
+            headers: {
+              'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN,
+            },
+          }
+        );
         const images = imagesResponse.data;
         const postsWithImages = posts.map(postId => {
           const image = images.find(img => img.postId === postId)?.imageLink || '';
@@ -143,7 +155,16 @@ const Page: React.FC = () => {
       if (likedResponse) {
         const likedPostIds = likedResponse.map(post => post._id);
         if (likedPostIds.length > 0) {
-          const likedImagesResponse = await axios.post<{ postId: string, imageLink: string }[]>('/api/getImages', { postIds: likedPostIds });
+          const likedImagesResponse = await axios.post<{ postId: string, imageLink: string }[]>(
+            '/api/getImages',
+            { postIds: likedPostIds },
+            {
+              headers: {
+                'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN,
+              },
+            }
+          );
+          
           const likedImages = likedImagesResponse.data;
           const likedPostsWithImages = likedResponse.map(post => ({
             ...post,
@@ -159,7 +180,11 @@ const Page: React.FC = () => {
       setFirstName(userData.clerkData.firstName);
       setLastName(userData.clerkData.lastName);
   
-      const clerkResponse = await axios.get<ClerkUser>('/api/getUserId');
+      const clerkResponse = await axios.get<ClerkUser>('/api/getUserId', {
+        headers: {
+          'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN, // Pass the token in the request headers
+        },
+      });
       setCurrentClerkUserId(clerkResponse.data.userId);
   
     } catch (error) {
