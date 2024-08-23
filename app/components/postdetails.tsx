@@ -65,7 +65,7 @@ const PostDetails: React.FC<PostDetailsProps> = ({ minimalPost, user, clerkUserI
   const router = useRouter();
 
   const truncateText = (text: string) => {
-    return text.length > 10 ? text.substring(0, 21) + '...' : text;
+    return text.length > 20 ? text.substring(0, 21) + '...' : text;
   };
 
 
@@ -448,7 +448,6 @@ const PostDetails: React.FC<PostDetailsProps> = ({ minimalPost, user, clerkUserI
               <div className="max-h-full">
                 {post.recipe ? (
                   <div
-                    className="overflow-y-auto"
                     dangerouslySetInnerHTML={{
                       __html: post.recipe.replace(/<ul>/g, '<ul class="list-disc pl-5">')
                                         .replace(/<ol>/g, '<ol class="list-decimal pl-5">')

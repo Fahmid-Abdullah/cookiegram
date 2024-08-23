@@ -6,7 +6,6 @@ export const validateToken = (handler: (req: NextRequest) => Promise<NextRespons
     const secretToken = process.env.NEXT_PUBLIC_API_SECRET_TOKEN;
     
     const token = req.headers.get('x-api-token');
-    console.log(token)
     
     if (token !== secretToken) {
       return NextResponse.json({ message: 'Forbidden'}, { status: 403 });

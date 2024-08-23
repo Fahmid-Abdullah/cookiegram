@@ -27,7 +27,7 @@ export default function Page() {
     const [imgurLink, setImgurLink] = useState<string>("/uploadImg.png");
     const [clerkUserId, setClerkUserId] = useState<string>("");
     const [description, setDescription] = useState<string>("");
-    const [recipe, setRecipe] = useState<string>('<h2><strong>Ingredients</strong></h2><ul><li></li></ul><h2><strong>Instructions</strong></h2><ul><li></li></ul>');
+    const [recipe, setRecipe] = useState<string>('<h2><strong>Ingredients</strong></h2><ul><li></li></ul><h2><strong>Instructions</strong></h2><ol><li></li></ol>');
     const [submitting, setSubmitting] = useState<boolean>(false);
     const [showCropModal, setShowCropModal] = useState<boolean>(false);
     const [selectedImage, setSelectedImage] = useState<File | null>(null);

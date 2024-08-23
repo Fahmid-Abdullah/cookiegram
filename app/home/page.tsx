@@ -61,7 +61,7 @@ export default function Page() {
   const router = useRouter();
 
   const truncateText = (text: string) => {
-    return text.length > 10 ? text.substring(0, 21) + '...' : text;
+    return text.length > 20 ? text.substring(0, 21) + '...' : text;
   };
 
 // Modify your `fetchUserAndPosts` function to pass the sorting criterion
@@ -512,12 +512,13 @@ export default function Page() {
             <div className="max-h-full">
               {post.recipe ? (
                 <div
-                  className="overflow-y-auto"
                   dangerouslySetInnerHTML={{
-                    __html: post.recipe.replace(/<ul>/g, '<ul class="list-disc pl-5">')
-                                      .replace(/<ol>/g, '<ol class="list-decimal pl-5">')
-                                      .replace(/<li>/g, '<li class="mb-2">')
-                  }}
+                    __html: post.recipe
+                    .replace(/<ul>/g, '<ul class="list-disc pl-5">')
+                    .replace(/<ol>/g, '<ol class="list-decimal pl-5">')
+                    .replace(/<li>/g, '<li class="mb-2">'),
+                }}
+                  
                 />
               ) : (
                 <p>No recipe available.</p>

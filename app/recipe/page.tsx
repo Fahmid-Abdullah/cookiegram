@@ -5,9 +5,7 @@ import { getRecipe } from "../lib/actions/post.actions";
 import NavBar from "../components/navbar";
 
 export default function Page() {
-  const [recipe, setRecipe] = useState<string>(
-    "<h2><strong>Ingredients</strong></h2><ul><li></li></ul><h2><strong>Instructions</strong></h2><ul><li></li></ul>"
-  );
+  const [recipe, setRecipe] = useState<string>("");
   const [creator, setCreator] = useState<string>("")
   const [loading, setLoading] = useState(true);
   const [recipeName, setRecipeName] = useState("");
