@@ -8,7 +8,6 @@ import { Input } from "@nextui-org/react";
 import { deleteComment, getComments, newComment } from "../lib/actions/comment.action";
 import { useRouter } from 'next/navigation';
 import {Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button} from "@nextui-org/react";
-
 import '../styles.css';
 
 interface ClerkUser {
@@ -56,8 +55,14 @@ export default function Page() {
   const [dropdowns, setDropdowns] = useState<{ [postId: string]: boolean }>({});
   const [confirms, setConfirms] = useState<{ [postId: string]: boolean }>({});
   const [sortingCriterion, setSortingCriterion] = useState<'followings' | 'releaseDate'>('releaseDate');
+  const [isLikeProcessing, setIsLikeProcessing] = useState<{ [postId: string]: boolean }>({});
+  const [isFollowProcessing, setIsFollowProcessing] = useState<{ [followUserId: string]: boolean }>({});
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  const truncateText = (text: string) => {
+    return text.length > 10 ? text.substring(0, 21) + '...' : text;
+  };
 
 // Modify your `fetchUserAndPosts` function to pass the sorting criterion
   const fetchUserAndPosts = async () => {
@@ -79,10 +84,18 @@ export default function Page() {
   const fetchUserId = async (): Promise<{ userId: string; followings: string[] }> => {
     try {
       setLoading(true); // Start loading
-      const response = await axios.get<ClerkUser>('/api/getUserId');
+      const response = await axios.get<ClerkUser>('/api/getUserId', {
+        headers: {
+          'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN, // Pass the token in the request headers
+        },
+      });
       if (response.data.userId) {
         setClerkUserId(response.data.userId);
-        const userResponse = await axios.get<User>('/api/getUser');
+        const userResponse = await axios.get<User>('/api/getUser', {
+          headers: {
+            'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN, // Pass the token in the request headers
+          },
+        });
         return { userId: userResponse.data._id, followings: userResponse.data.followings };
       } else {
         router.push('/')
@@ -98,7 +111,11 @@ export default function Page() {
 
   const fetchPosts = async (currentUserId: string, followings: string[], sortingCriterion: 'followings' | 'releaseDate') => {
     try {
-      const response = await axios.get<Post[]>('/api/getPosts');
+      const response = await axios.get<Post[]>('/api/getPosts', {
+        headers: {
+          'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN, // Pass the token in the request headers
+        },
+      });
       const updatedPosts = response.data.map(post => ({
         ...post,
         isLiked: post.likes.includes(currentUserId),
@@ -156,20 +173,29 @@ export default function Page() {
   }
 
   const handleLikeClick = async (postId: string, isLiked: boolean) => {
+    if (isLikeProcessing[postId]) return; // Prevent duplicate requests
+  
+    setIsLikeProcessing(prev => ({ ...prev, [postId]: true }));
+  
     try {
       await likePost(clerkUserId, postId, !isLiked);
-      // Update the local state to reflect the like change immediately
       setPosts(prevPosts => prevPosts.map(post =>
         post._id === postId ? { ...post, isLiked: !isLiked, likes: isLiked ? post.likes.filter(id => id !== clerkUserId) : [...post.likes, clerkUserId] } : post
       ));
-      await fetchUserAndPosts()
     } catch (error) {
       console.error("Error handling like click:", error);
+    } finally {
+      setIsLikeProcessing(prev => ({ ...prev, [postId]: false }));
     }
   };
 
   const handleFollowClick = async (followUserId: string, isFollowed: boolean) => {
+    if (isFollowProcessing[followUserId]) return;
+
+    setIsFollowProcessing(prev => ({ ...prev, [followUserId]: true }));
+
     try {
+
       setLoading(true); // Start loading
       await followUser(clerkUserId, followUserId, !isFollowed);
       setPosts(posts.map(post => 
@@ -179,15 +205,18 @@ export default function Page() {
       console.error("Error handling follow click:", error);
     } finally {
       setLoading(false); // End loading
+      setIsFollowProcessing(prev => ({ ...prev, [followUserId]: false }));
     }
   };
 
   const handleCommentClick = async (postId: string, content: string) => {
     try {
-        setLoading(true); // Start loading
-        await newComment(postId, userId, content);
-        setCommentContent(""); // Clear the input field
-        await fetchComments(postId); // Refresh comments
+        if (content !== "") {
+          setLoading(true); // Start loading
+          await newComment(postId, userId, content);
+          setCommentContent(""); // Clear the input field
+          await fetchComments(postId); // Refresh comments
+        }
     } catch (error) {
         console.error("Error handling comment click:", error);
     } finally {
@@ -198,7 +227,6 @@ export default function Page() {
   const handleDeleteComment = async (postId: string, commentId: string) => {
     try {
         setLoading(true); // Start loading
-        console.log(commentId)
         await deleteComment(commentId);
         await fetchComments(postId); // Refresh comments
     } catch (error) {
@@ -308,7 +336,7 @@ export default function Page() {
                   <div className="flex items-center mt-5 mb-5">
                     <img className='rounded-full w-8 h-8' src={`${post.image}?${new URLSearchParams({ height: "32", width: "32", quality: "100", fit: "crop" })}`} onClick={() => router.push(`/profile?clerkId=${post.clerkId}`)} alt="User profile" />
                     <div className="relative group">
-                      <h3 className="mx-2 hover:text-blue-500" onClick={() => router.push(`/profile?clerkId=${post.clerkId}`)}><strong>{post.creator}</strong></h3>
+                      <h3 className="mx-2 hover:text-blue-500" onClick={() => router.push(`/profile?clerkId=${post.clerkId}`)}><strong>{truncateText(post.creator)}</strong></h3>
                       <div className="absolute right-0 z-50 transform hidden group-hover:block bg-blue-500 text-white text-xs rounded py-1 px-2 text-center">
                         View Profile
                       </div>
@@ -421,7 +449,7 @@ export default function Page() {
                         className="font-semibold text-lg cursor-pointer hover:text-blue-500"
                         onClick={() => router.push(`/profile?clerkId=${comment.clerkId}`)}
                       >
-                        {comment.creator}
+                        {truncateText(comment.creator)}
                       </h4>
                       <div className="absolute right-0 z-50 left-10 transform hidden group-hover:block bg-blue-500 text-white text-xs rounded py-1 px-2 text-center" style={{ width: '90px' }}>
                         View Profile
@@ -512,7 +540,7 @@ export default function Page() {
       {/* Delete Confirmation */}
       {confirms[post._id] && (
         <div
-          className="inset-0 items-center justify-center absolute bg-white border border-gray-300 z-30 rounded-xl flex flex-col shadow-xl"
+          className="inset-0 items-center justify-center absolute bg-white border m-auto border-gray-300 z-30 rounded-xl flex flex-col shadow-xl"
           style={{ width: 'auto', height: '200px', margin: '0', transform: 'translateY(110%)' }}
         >
           <div className="p-5">

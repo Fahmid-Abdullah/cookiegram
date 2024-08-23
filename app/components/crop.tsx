@@ -63,8 +63,8 @@ const CropModal: React.FC<CropModalProps> = ({ src, onCrop, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 px-5">
-            <div className="bg-white p-4 rounded shadow-lg relative w-full lg:w-4/12 overflow-auto">
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 px-5 overflow-y-auto custom-scrollbar">
+            <div className="bg-white p-4 rounded shadow-lg relative w-full lg:w-4/12 m-auto">
                 <ReactCrop
                     crop={crop}
                     onChange={(newCrop) => setCrop(newCrop)}

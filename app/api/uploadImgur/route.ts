@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
+import { authenticate } from '../../middleware/authenticate';
 
 const clientId = process.env.NEXT_PUBLIC_IMGUR_CLIENT_ID;
 
@@ -11,8 +12,6 @@ export async function POST(req: NextRequest) {
     if (!file) {
       return NextResponse.json({ error: 'File not provided' }, { status: 400 });
     }
-
-    console.log('File received:', file);
 
     const imgurFormData = new FormData();
     imgurFormData.append('image', file);

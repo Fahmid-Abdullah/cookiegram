@@ -79,7 +79,7 @@ export default function NavBar() {
                             Search Recipes
                         </div>
                         </div>
-                        <div className="relative group">
+                        <div className="relative group group hidden md:block">
                             <Link href="/new">
                                 <h2 className='text-2xl transition-transform duration-300 hover:scale-110'><i className="fa-solid fa-plus"></i></h2>
                             </Link>

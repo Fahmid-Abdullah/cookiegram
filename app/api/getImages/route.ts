@@ -1,8 +1,11 @@
 import { connectToDB } from '@/app/lib/mongoose';
 import Post from '@/app/lib/models/post.model';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { authenticate } from '../../middleware/authenticate';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+
+
     await connectToDB();
 
     try {

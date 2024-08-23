@@ -17,7 +17,6 @@ interface CommentFormatted {
 export async function newComment(postId: string, commentUserId: string, content: string): Promise<void> {
     await connectToDB();
     try {
-        console.log(commentUserId);
         const userObject = await User.findOne({ _id: commentUserId });
         const post = await Post.findOne({ _id: postId });
 
@@ -26,7 +25,6 @@ export async function newComment(postId: string, commentUserId: string, content:
         }
 
         const newComment = new Comment({ userId: userObject._id, postId, content});
-        console.log(newComment)
 
         // Save the post
         await newComment.save();
@@ -34,8 +32,6 @@ export async function newComment(postId: string, commentUserId: string, content:
         // Add comment to post db
         post.commentIDs.push(newComment);
         await post.save();
-
-        console.log("Comment created successfully :)");
 
     } catch (error: any) {
         throw new Error(`Failed to create comment: ${error.message}`);
@@ -106,7 +102,6 @@ export async function deleteComment(commentId: string): Promise<void> {
         if (existingComment.deletedCount === 1) {
             postObject.commentIDs.pull(commentId)
             await postObject.save()
-            console.log("Comment deleted successfully :)");
         } else {
             console.log("Comment not found :(");
         }

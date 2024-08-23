@@ -3,6 +3,7 @@ import User from '@/app/lib/models/user.model';
 import { connectToDB } from '@/app/lib/mongoose';
 import { clerkClient } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import { authenticate } from '../../middleware/authenticate';
 
 export async function GET(request: Request) {
     await connectToDB();

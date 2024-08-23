@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { connectToDB } from '@/app/lib/mongoose';
+import { authenticate } from '../../middleware/authenticate';
 
 export async function GET(request: Request) {
     await connectToDB();

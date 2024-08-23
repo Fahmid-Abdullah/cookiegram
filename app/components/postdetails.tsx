@@ -59,8 +59,15 @@ const PostDetails: React.FC<PostDetailsProps> = ({ minimalPost, user, clerkUserI
   const [visibleBoxes, setVisibleBoxes] = useState<{ [postId: string]: { comment: boolean; recipe: boolean } }>({});
   const [dropdown, setDropdown] = useState<{ postId: string | null, isOpen: boolean }>({ postId: null, isOpen: false });
   const [confirm, setConfirm] = useState<{ postId: string | null, isConfirmed: boolean }>({ postId: null, isConfirmed: false }); 
+  const [isLikeProcessing, setIsLikeProcessing] = useState<boolean>(false);
+  const [isFollowProcessing, setIsFollowProcessing] = useState<{ [followUserId: string]: boolean }>({});
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  const truncateText = (text: string) => {
+    return text.length > 10 ? text.substring(0, 21) + '...' : text;
+  };
+
 
   const fetchPostDetails = async () => {
     if (minimalPost) {
@@ -90,6 +97,10 @@ const PostDetails: React.FC<PostDetailsProps> = ({ minimalPost, user, clerkUserI
   const handleLikeClick = async () => {
     if (post) {
       try {
+        if (isLikeProcessing) return; // Prevent duplicate requests
+
+        setIsLikeProcessing(true);
+
         // Toggle the like status on the server
         await likePost(clerkUserId, post._id, !isLiked);
   
@@ -107,12 +118,17 @@ const PostDetails: React.FC<PostDetailsProps> = ({ minimalPost, user, clerkUserI
         await fetchPostDetails()
       } catch (error) {
         console.error("Error handling like click:", error);
+      } finally {
+        setIsLikeProcessing(false);
       }
     }
   };
-  
 
   const handleFollowClick = async ( followUserId: string) => {
+    if (isFollowProcessing[followUserId]) return;
+
+    setIsFollowProcessing(prev => ({ ...prev, [followUserId]: true }));
+
     if (post) {
       try {
         setLoading(true); // Start loading
@@ -123,18 +139,21 @@ const PostDetails: React.FC<PostDetailsProps> = ({ minimalPost, user, clerkUserI
         console.error("Error handling follow click:", error);
       } finally {
         setLoading(false); // End loading
+        setIsFollowProcessing(prev => ({ ...prev, [followUserId]: false }));
       }
     }
   };
 
   const handleCommentClick = async () => {
-    if (post && commentContent) {
+    if (post) {
       try {
-        setLoading(true); // Start loading
-        if (user) {
-          await newComment(post._id, user?._id, commentContent);
-          setCommentContent("");
-          await fetchComments(post._id);
+        if (commentContent !== "") {
+          setLoading(true); // Start loading
+          if (user) {
+            await newComment(post._id, user?._id, commentContent);
+            setCommentContent("");
+            await fetchComments(post._id);
+          }
         }
       } catch (error) {
         console.error("Error handling comment click:", error);
@@ -244,15 +263,15 @@ const PostDetails: React.FC<PostDetailsProps> = ({ minimalPost, user, clerkUserI
   }
 
   return (
-    <div className="fixed inset-0 px-5 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10 text-black">
-      <div className="bg-white relative p-4 rounded-lg shadow-xl w-full md:w-[50vw] lg:w-2/6 mx-auto mb-7">
+    <div className="fixed inset-0 px-5 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10 text-black overflow-y-auto custom-scrollbar">
+      <div className="bg-white relative p-4 rounded-lg shadow-xl w-full h-fit md:w-[50vw] lg:w-2/6 mx-auto mb-7 m-auto">
         <button onClick={onClose} className="absolute top-2 right-4 pr-2 text-gray-600 hover:text-gray-900">
           <i className="fa-solid fa-x"></i>
         </button>
         <div className="flex items-center mt-5 mb-5">
           <img className='rounded-full w-8 h-8' src={`${post.image}?${new URLSearchParams({ height: "32", width: "32", quality: "100", fit: "crop" })}`} onClick={() => handleUserClick(post.clerkUserId)} alt="User profile" />
           <div className="relative group">
-            <h3 className="mx-2 hover:text-blue-500" onClick={() => handleUserClick(post.clerkUserId)}><strong>{post.creator}</strong></h3>
+            <h3 className="mx-2 hover:text-blue-500" onClick={() => handleUserClick(post.clerkUserId)}><strong>{truncateText(post.creator) }</strong></h3>
             <div className="absolute left-2 z-50 transform hidden group-hover:block bg-blue-500 text-white text-xs rounded py-1 px-2 text-center" style={{ width: '90px' }}>
               View Profile
             </div>
@@ -362,7 +381,7 @@ const PostDetails: React.FC<PostDetailsProps> = ({ minimalPost, user, clerkUserI
                         className="font-semibold text-lg cursor-pointer hover:text-blue-500"
                         onClick={() => router.push(`/profile?clerkId=${comment.clerkId}`)}
                       >
-                        {comment.creator}
+                        {truncateText(comment.creator)}
                       </h4>
                       <div className="absolute right-0 z-50 left-10 transform hidden group-hover:block bg-blue-500 text-white text-xs rounded py-1 px-2 text-center" style={{ width: '90px' }}>
                         View Profile

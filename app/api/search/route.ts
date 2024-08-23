@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Post from '@/app/lib/models/post.model';
 import { getAllUsers } from '@/app/lib/actions/user.actions';
+import { authenticate } from '../../middleware/authenticate';
 
 export async function GET(request: Request) {
   const url = new URL(request.url);

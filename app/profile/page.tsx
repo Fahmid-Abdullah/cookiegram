@@ -39,6 +39,7 @@ interface ClerkUser {
 interface User {
   _id: string;
   followings: string[];
+  followers: string[];
 }
 
 interface minimalPost {
@@ -46,11 +47,6 @@ interface minimalPost {
   imageLink: string;
   description: string;
   created_at: string;
-}
-
-interface OtherProfile {
-  clerkUserId: string;
-  isFollowed: boolean
 }
 
 const Page: React.FC = () => {
@@ -72,6 +68,8 @@ const Page: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('own');
   const [firstName, setFirstName] = useState(user?.clerkData.firstName || "");
   const [lastName, setLastName] = useState(user?.clerkData.lastName || "");
+  const [isFollowProcessing, setIsFollowProcessing] = useState<{ [followUserId: string]: boolean }>({});
+  const [descriptionCount, setDescriptionCount] = useState(250);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -81,91 +79,96 @@ const Page: React.FC = () => {
 
   const urlParams = useSearchParams();
 
+  const truncateNameText = (text: string) => {
+    return text.length > 10 ? text.substring(0, 10) + '...' : text;
+  };
+
+  const truncateText = (text: string) => {
+    return text.length > 10 ? text.substring(0, 21) + '...' : text;
+  };
+
   const fetchUser = async () => {
-    setLoading(true); // Start loading
+    setLoading(true);
     try {
       const id = urlParams.get('clerkId');
       if (!id) {
         console.error("No id found.");
         return;
       }
-      const response = await axios.get<UserProfile>('/api/getProfile', {
-        params: { clerkId: id }
-      });
-      if (response.data) {
-        const { followers, followings, posts } = response.data.updatedUserData;
   
-        setDescription(response.data.updatedUserData.description);
+      // Fetch current user
+      const userResponse = await axios.get<User>('/api/getUser');
+      setCurrentUser(userResponse.data);
   
-        const updatedFollowers = followers.map(follower => ({
-          ...follower,
-          isFollowed: followings.some(following => following.clerkId === follower.clerkId),
-        }));
-        setFollowers(updatedFollowers);
-  
-        const updatedFollowings = followings.map(following => ({
-          ...following,
-          isFollowed: true,
-        }));
-        setFollowings(updatedFollowings);
-  
-        // Check if there are posts before calling getImages
-        if (posts.length > 0) {
-          const imagesResponse = await axios.post<{ postId: string, imageLink: string }[]>('/api/getImages', { postIds: posts });
-          const images = imagesResponse.data;
-          
-          const postsWithImages = posts.map(postId => {
-            const image = images.find(img => img.postId === postId)?.imageLink || '';
-            return { _id: postId, imageLink: image, description, created_at: '' };
-          });
-          setPosts(postsWithImages);
-        } else {
-          setPosts([]); // Set posts to an empty array if no posts are available
-        }
-  
-        const likedResponse = await getLikedPosts(id);
-        if (likedResponse) {
-          const likedPostIds = likedResponse.map(post => post._id);
-          
-          // Check if there are liked posts before calling getImages
-          if (likedPostIds.length > 0) {
-            const likedImagesResponse = await axios.post<{ postId: string, imageLink: string }[]>('/api/getImages', { postIds: likedPostIds });
-            const likedImages = likedImagesResponse.data;
-  
-            const likedPostsWithImages = likedResponse.map(post => ({
-              ...post,
-              imageLink: likedImages.find(img => img.postId === post._id)?.imageLink || '',
-            }));
-            setLikedPosts(likedPostsWithImages);
-          } else {
-            setLikedPosts([]); // Set liked posts to an empty array if no liked posts are available
-          }
-        }
-
-        if (response.data) {
-          setUser(response.data);
-
-          setFirstName(response.data.clerkData.firstName)
-          setLastName(response.data.clerkData.lastName)
-        }
-
-        const clerkResponse = await axios.get<ClerkUser>('/api/getUserId');
-        setCurrentClerkUserId(clerkResponse.data.userId);
-  
-        const userResponse = await axios.get<User>('/api/getUser');
-        setCurrentUser(userResponse.data);
-
-      } else {
-        router.push('/')
+      const response = await axios.get<UserProfile>('/api/getProfile', { params: { clerkId: id } });
+      const userData = response.data;
+      if (!userData) {
+        router.push('/');
         throw new Error('User not authenticated');
       }
-    } catch (error) {
-      console.error("Error fetching user ID or user data:", error);
-    } finally {
-      setLoading(false); // End loading
-    }
-  };  
+  
+      // Set user data
+      const { followers, followings, posts } = userData.updatedUserData;
+      setDescription(userData.updatedUserData.description);
+      setDescriptionCount(250 - userData.updatedUserData.description.length); // Update initial character count
 
+      // Update followers and followings
+      const updatedFollowers = followers.map(follower => ({
+        ...follower,
+        isFollowed: userResponse.data.followings.includes(follower.userId) || false,
+      }));
+      setFollowers(updatedFollowers);
+  
+      const updatedFollowings = followings.map(following => ({
+        ...following,
+        isFollowed: userResponse.data.followings.includes(following.userId) || false,
+      }));
+      setFollowings(updatedFollowings);
+  
+      // Fetch posts
+      if (posts && posts.length > 0) {
+        const imagesResponse = await axios.post<{ postId: string, imageLink: string }[]>('/api/getImages', { postIds: posts });
+        const images = imagesResponse.data;
+        const postsWithImages = posts.map(postId => {
+          const image = images.find(img => img.postId === postId)?.imageLink || '';
+          return { _id: postId, imageLink: image, description, created_at: '' };
+        });
+        setPosts(postsWithImages);
+      } else {
+        setPosts([]);
+      }
+  
+      // Fetch liked posts
+      const likedResponse = await getLikedPosts(id);
+      if (likedResponse) {
+        const likedPostIds = likedResponse.map(post => post._id);
+        if (likedPostIds.length > 0) {
+          const likedImagesResponse = await axios.post<{ postId: string, imageLink: string }[]>('/api/getImages', { postIds: likedPostIds });
+          const likedImages = likedImagesResponse.data;
+          const likedPostsWithImages = likedResponse.map(post => ({
+            ...post,
+            imageLink: likedImages.find(img => img.postId === post._id)?.imageLink || '',
+          }));
+          setLikedPosts(likedPostsWithImages);
+        } else {
+          setLikedPosts([]);
+        }
+      }
+  
+      setUser(userData);
+      setFirstName(userData.clerkData.firstName);
+      setLastName(userData.clerkData.lastName);
+  
+      const clerkResponse = await axios.get<ClerkUser>('/api/getUserId');
+      setCurrentClerkUserId(clerkResponse.data.userId);
+  
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   useEffect(() => {
     fetchUser();
   }, [urlParams, isPostDetailsVisible]);  
@@ -206,8 +209,6 @@ const Page: React.FC = () => {
         setFirstName(user.clerkData.firstName);
         setLastName(user.clerkData.lastName);
   
-        console.log("Profile updated successfully");
-  
         await fetchUser();
       } catch (error) {
         console.error("Error updating profile:", error);
@@ -218,6 +219,10 @@ const Page: React.FC = () => {
   };
   
   const handleFollowClick = async (followUserId: string, isFollowed: boolean) => {
+    if (isFollowProcessing[followUserId]) return;
+
+    setIsFollowProcessing(prev => ({ ...prev, [followUserId]: true }));
+
     try {
       setLoading(true); // Start loading
       if (user?.clerkData.userId) {
@@ -244,6 +249,7 @@ const Page: React.FC = () => {
       console.error("Error handling follow click:", error);
     } finally {
       setLoading(false); // End loading
+      setIsFollowProcessing(prev => ({ ...prev, [followUserId]: false }));
     }
   };
 
@@ -265,29 +271,36 @@ const Page: React.FC = () => {
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
-    
+  
     if (user && selectedFile) {
-      event.target.value = ''; // Clear the file input value
+      // Check if the selected file is an image
+      if (!selectedFile.type.startsWith('image/')) {
+        alert('Please select a valid image file.');
+        return;
+      }
   
       const formData = new FormData();
       formData.append('file', selectedFile);
   
-      await updatePfp(user.clerkData.userId, formData);
-      await fetchUser()
+      try {
+        await updatePfp(user.clerkData.userId, formData);
+        await fetchUser();
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('Error uploading image. Please try again.');
+      }
     }
   };
 
-  const handleOtherProfile = async () => {
-    if (user && currentUser) {
-      setProfileClerkId(user.updatedUserData._id)
+const handleOtherProfile = async () => {
+  if (user && currentUser) {
+    setProfileClerkId(user.updatedUserData._id);
 
-      const isFollowing = user.updatedUserData.followers.some(follower => follower.userId === currentUser._id);
-
-      if (isFollowing) {
-        setProfileIsFollowed(true)
-      }
-    }
+    // Set `isFollowed` based on whether the current user is following this profile
+    const isFollowing = currentUser.followings.includes(user.updatedUserData._id);
+    setProfileIsFollowed(isFollowing);
   }
+};
   
   const toggleFollowings = () => {
     setFollowingsVisible(!followingsVisible);
@@ -372,7 +385,7 @@ const Page: React.FC = () => {
             <div className='flex items-center justify-normal md:justify-between'>
               <div className='flex  items-center'>
               <div className='font-bold text-xl'>
-                {user.clerkData.firstName} {user.clerkData.lastName}
+                {truncateNameText(user.clerkData.firstName)} {truncateNameText(user.clerkData.lastName)}
               </div>
               {user?.updatedUserData._id === currentUser?._id ? (
                 isEditing ? (
@@ -406,7 +419,8 @@ const Page: React.FC = () => {
               )}
 
               </div>
-              <SignOutButton>
+              {user?.updatedUserData._id === currentUser?._id && (
+                <SignOutButton>
                 <button className='ml-3 flex items-center transition-transform duration-300 hover:scale-110'>
                   <div className="relative group">
                     <i className="fa-solid fa-right-from-bracket text-2xl text-rose-500 hover:text-rose-700"></i>
@@ -416,24 +430,31 @@ const Page: React.FC = () => {
                 </div>     
                 </button>
               </SignOutButton>
+              )}
             </div>
             {isEditing && (
-                    <>
-                      <input
-                        type="text"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        className="border rounded p-1 mr-2 mt-5"
-                        placeholder="First Name"
-                      />
-                      <input
-                        type="text"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        className="border rounded p-1 mb-3"
-                        placeholder="Last Name"
-                      />
-                    </>
+                <>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => {
+                  const newValue = e.target.value.replace(/[0-9]/g, '');
+                  setFirstName(newValue);
+                }}
+                className="border rounded p-1 mr-2 mt-5"
+                placeholder="First Name"
+              />
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => {
+                  const newValue = e.target.value.replace(/[0-9]/g, '');
+                  setLastName(newValue);
+                }}
+                className="border rounded p-1 mb-3"
+                placeholder="Last Name"
+              />
+                  </>
                   ) }
             <div className='flex md:flex-row flex-col justify-start md:space-x-4 mt-2'>
               <div>{user.updatedUserData.posts.length} posts</div>
@@ -454,11 +475,17 @@ const Page: React.FC = () => {
               {isEditing ? (
                 <div className='flex flex-col'>
                   <div className='w-full md:w-screen max-w-xl'>
-                    <Textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      maxLength={250}
-                    />
+                  <Textarea
+                    value={description}
+                    maxLength={250}
+                    onChange={(e) => {
+                      setDescription(e.target.value);
+                      setDescriptionCount(250 - e.target.value.length);
+                    }}
+                    rows={4}
+                    placeholder="Enter your description here"
+                  />
+                  <p className="text-gray-500">{descriptionCount} characters remaining</p>
                   </div>
                 </div>
               ) : (
@@ -497,7 +524,7 @@ const Page: React.FC = () => {
     {followersVisible && (
       <div
         ref={followersRef}
-        className="absolute top-16 left-1/2 transform bg-white z-30 rounded-xl flex flex-col shadow-xl overflow-y-auto custom-scrollbar"
+        className="absolute top-16 left-1/2 transform bg-white z-30 rounded-xl flex flex-col shadow-xl m-auto overflow-y-auto custom-scrollbar"
         style={{
           width: '500px',
           height: '600px',  // Fixed height for the box
@@ -520,7 +547,7 @@ const Page: React.FC = () => {
                     alt={`${follower.creator}'s profile`}
                   />
                   <div className="relative group">
-                    <span className="flex-grow hover:text-blue-500" onClick={() => handleUserClick(follower.clerkId)}>{follower.creator}</span>
+                    <span className="flex-grow hover:text-blue-500" onClick={() => handleUserClick(follower.clerkId)}>{truncateText(follower.creator)}</span>
                     <div className="absolute left-5 z-50 transform hidden group-hover:block bg-blue-500 text-white text-center text-xs rounded py-1 px-2" style={{ width: '90px' }}>
                       View Profile
                     </div>
@@ -546,7 +573,7 @@ const Page: React.FC = () => {
     {followingsVisible && (
       <div
         ref={followingsRef}
-        className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-white z-30 rounded-xl flex flex-col shadow-xl overflow-y-auto custom-scrollbar"
+        className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-white z-30 rounded-xl flex flex-col shadow-xl m-auto overflow-y-auto custom-scrollbar"
         style={{
           width: '500px',
           height: '600px',  // Fixed height for the box
@@ -569,7 +596,7 @@ const Page: React.FC = () => {
                     alt={`${following.creator}'s profile`}
                   />
                   <div className="relative group">
-                    <span className="flex-grow hover:text-blue-500" onClick={() => handleUserClick(following.clerkId)}>{following.creator}</span>
+                    <span className="flex-grow hover:text-blue-500" onClick={() => handleUserClick(following.clerkId)}>{truncateText(following.creator)}</span>
                     <div className="absolute left-5 z-50 transform hidden group-hover:block bg-blue-500 text-white text-center text-xs rounded py-1 px-2" style={{ width: '90px' }}>
                       View Profile
                     </div>

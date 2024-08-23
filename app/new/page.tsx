@@ -7,6 +7,7 @@ import { newPost } from '../lib/actions/post.actions';
 import 'react-quill/dist/quill.snow.css';
 import { useRouter } from 'next/navigation';
 import CropModal from '../components/crop';
+import { Textarea } from '@nextui-org/react';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
@@ -31,6 +32,7 @@ export default function Page() {
     const [showCropModal, setShowCropModal] = useState<boolean>(false);
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [errorMessage, setErrorMessage] = useState<string>('');
+    const [descriptionCount, setDescriptionCount] = useState(250);
     const [loading, setLoading] = useState(true);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,8 +45,6 @@ export default function Page() {
     useEffect(() => {
         if (selectedImage) {
             setShowCropModal(true);
-        } else {
-            console.log("Problem")
         }
     }, [selectedImage]);
 
@@ -68,11 +68,16 @@ export default function Page() {
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = event.target.files?.[0];
         if (selectedFile) {
+            if (!selectedFile.type.startsWith('image/')) {
+                alert('Please select a valid image file.');
+                return;
+              }
+
             setSelectedImage(selectedFile);
             event.target.value = '';
         }
     };
-    
+
 
     const handleCrop = async (croppedImage: File) => {
         setShowCropModal(false);
@@ -186,14 +191,17 @@ export default function Page() {
                         <label htmlFor="description" className='text-lg font-semibold'>
                             Description:
                         </label>
-                        <textarea
-                            id="description"
+                        <Textarea
                             value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            rows={3}
                             maxLength={250}
-                            className='mt-2 p-3 border border-gray-300 rounded-lg w-full max-w-2xl'
+                            onChange={(e) => {
+                            setDescription(e.target.value);
+                            setDescriptionCount(250 - e.target.value.length);
+                            }}
+                            rows={4}
+                            placeholder="Enter your description here"
                         />
+                        <p className="text-gray-500">{descriptionCount} characters remaining</p>
                     </div>
                     <div className='flex flex-col items-center lg:items-start mb-6 px-5 w-full'>
                         <label htmlFor="recipe" className='text-lg font-semibold'>

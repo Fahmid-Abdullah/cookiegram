@@ -25,9 +25,6 @@ export async function createUser(clerkUserId: string): Promise<void> {
         if (!existingUser) {
             const newUser = new User( { clerkUserId } );
             await newUser.save();
-            console.log("User created successfully :)")
-        } else {
-            console.log("User already exists :|")
         }
     } catch (error: any) {
         throw new Error(`Failed to create user :( ${error.message}`)
@@ -41,7 +38,6 @@ export async function getUser(clerkUserId: string): Promise<any> {
             console.log('User not found. Creating User.');
             await createUser(clerkUserId);
             existingUser = await User.findOne({ clerkUserId });
-            console.log("User created successfully :)");
         }
         return existingUser;
     } catch (error: any) {
@@ -57,7 +53,6 @@ export async function updateDescription(clerkUserId: string, description: string
         if (existingUser) {
             existingUser.description = description;
             await existingUser.save();
-            console.log("User description updated successfully :)");
         } else {
             console.log("User not found :(");
         }
@@ -81,13 +76,11 @@ export async function followUser(clerkUserId: string, followId: string, followed
             followUser.followers.push(user);
             await user.save();
             await followUser.save();
-            console.log("User followed successfully :)");
         } else {
             user.followings.pull(followUser);
             followUser.followers.pull(user);
             await user.save();
             await followUser.save();
-            console.log("User unfollowed successfully :)");
         }
         
     } catch (error: any) {
@@ -181,7 +174,6 @@ export async function updatePfp(clerkId: string, formData: FormData): Promise<vo
 
         if (fileEntry && fileEntry instanceof File) {
             const response = await clerkClient.users.updateUserProfileImage(clerkId, { file: fileEntry });
-            console.log(response);
         } else {
             throw new Error('Failed to get image or the image is not a valid file.');
         }
