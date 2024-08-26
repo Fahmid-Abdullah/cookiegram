@@ -354,7 +354,7 @@ const PostDetails: React.FC<PostDetailsProps> = ({ minimalPost, user, clerkUserI
             {formatDate(post.created_at)}
           </p>
         </div>
-        <p className="px-1">{post.likes.length} likes</p>
+        <p className="px-1">{post.likes.length} {post.likes.length === 1 ? 'like' : 'likes'}</p>
         <h3 className="w-full mt-3 mb-3 px-1">{post.description}</h3>
   
         {/* Comment Box */}
