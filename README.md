@@ -45,10 +45,17 @@ npm install
 
 Create a .env.local file in the root directory with the following (Set up environment variables):
 ```bash
-NEXT_PUBLIC_MONGODB_URI=<your_mongodb_uri>
-NEXT_PUBLIC_IMGUR_CLIENT_ID=<your_imgur_client_id>
-NEXT_PUBLIC_CLERK_FRONTEND_API=<your_clerk_frontend_api>
-CLERK_API_KEY=<your_clerk_api_key>
+NEXT_PUBLIC_API_SECRET_TOKEN=<>
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=<>
+CLERK_SECRET_KEY=<>
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=<>
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=<>
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=<>
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=<>
+NEXT_PUBLIC_IMGUR_CLIENT_ID=<>
+IMGUR_CLIENT_SECRET=<>
+IMGUR_REFRESH_TOKEN=<>
+MONGODB_URL=<>
 ```
 
 Run the development server:
