@@ -82,7 +82,8 @@ export default function LandingPage() {
       <p className="mt-5 leading-7">
         Join a lively and welcoming community of food enthusiasts, chefs, and home 
         cooks from all corners of the world. Connect with others who share your passion 
-        for cooking, exchange delicious recipes, and learn new techniques.
+        for cooking, exchange delicious recipes, and discover new techniques to elevate your
+        culinary skills and broaden your palate.
       </p>
       <div className="flex justify-center mt-5 flex-grow items-center">
         <Image
